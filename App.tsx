@@ -1,10 +1,10 @@
 
-import React, { useState, useCallback } from 'react';
-import { Calculator, Utensils, BrainCircuit, Activity, Info, ChevronLeft } from 'lucide-react';
-import { UserData, CalorieResults, Gender, ActivityLevel, Goal } from './types';
-import CalorieForm from './components/CalorieForm';
-import ResultsDisplay from './components/ResultsDisplay';
-import NutritionAI from './components/NutritionAI';
+import React, { useState } from 'react';
+import { Calculator, Utensils, BrainCircuit, Activity, ChevronLeft } from 'lucide-react';
+import { UserData, CalorieResults, Gender, ActivityLevel, Goal } from './types.ts';
+import CalorieForm from './components/CalorieForm.tsx';
+import ResultsDisplay from './components/ResultsDisplay.tsx';
+import NutritionAI from './components/NutritionAI.tsx';
 
 const App: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'calculator' | 'results' | 'ai'>('calculator');
 
   const calculateCalories = (data: UserData) => {
-    // Mifflin-St Jeor Equation
     let bmr = 0;
     if (data.gender === Gender.MALE) {
       bmr = 10 * data.weight + 6.25 * data.height - 5 * data.age + 5;
@@ -26,7 +25,6 @@ const App: React.FC = () => {
     if (data.goal === Goal.LOSS) targetCalories -= 500;
     if (data.goal === Goal.GAIN) targetCalories += 500;
 
-    // Standard split: 30% Protein, 40% Carbs, 30% Fats
     const macros = {
       protein: Math.round((targetCalories * 0.3) / 4),
       carbs: Math.round((targetCalories * 0.4) / 4),
@@ -88,7 +86,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Navigation for Mobile */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-4 flex justify-around items-center md:hidden z-50">
         <button 
           onClick={() => setActiveTab('calculator')}
@@ -115,7 +112,6 @@ const App: React.FC = () => {
         </button>
       </nav>
 
-      {/* Side Nav for Desktop */}
       <div className="hidden md:flex fixed right-8 top-1/2 -translate-y-1/2 flex-col gap-4">
         <button 
           onClick={() => setActiveTab('calculator')}

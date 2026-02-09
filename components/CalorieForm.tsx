@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserData, Gender, ActivityLevel, Goal } from '../types';
+import { UserData, Gender, ActivityLevel, Goal } from '../types.ts';
 
 interface CalorieFormProps {
   onCalculate: (data: UserData) => void;
