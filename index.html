@@ -4,63 +4,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>رشاقة | حاسبة السعرات</title>
+    <title>رشاقة | حاسبة السعرات الذكية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
-      body {
-        font-family: 'Tajawal', sans-serif;
-        background-color: #f8fafc;
-      }
-      /* إخفاء محتوى الصفحة حتى يتم تحميل React بالكامل */
+      body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; margin: 0; }
       #root:empty {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         height: 100vh;
-        background: white;
+        gap: 20px;
       }
-      #root:empty::after {
-        content: "جاري تحميل رشاقة...";
-        font-weight: bold;
-        color: #10b981;
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #10b981;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: rotation 1s linear infinite;
       }
+      @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 
-    <!-- تعريف بيئة العمل لمنع خطأ process is not defined -->
     <script>
-      window.process = {
-        env: {
-          API_KEY: "" // سيتم حقنها من المنصة أو استبدالها لاحقاً
-        }
-      };
+      // تعريف بيئة العمل فوراً قبل أي عملية استيراد
+      window.process = { env: { API_KEY: "" } };
+      window.global = window;
     </script>
 
     <script type="importmap">
-    {
-      "imports": {
-        "recharts": "https://esm.sh/recharts@^3.7.0",
-        "react": "https://esm.sh/react@^19.2.4",
-        "react/": "https://esm.sh/react@^19.2.4/",
-        "react-dom": "https://esm.sh/react-dom@^19.2.4",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-        "react/jsx-runtime": "https://esm.sh/react@^19.2.4/jsx-runtime",
-        "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-        "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0",
+    "recharts": "https://esm.sh/recharts@2.13.3",
+    "@google/genai": "https://esm.sh/@google/genai@1.4.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/"
+  }
+}
+</script>
 
-    <!-- استخدام ESM.sh Run لتحويل TSX تلقائياً في المتصفح -->
+    <!-- محول TSX/JSX للمتصفح -->
     <script type="module">
       import { run } from 'https://esm.sh/run';
       run();
     </script>
   </head>
   <body>
-    <div id="root"></div>
-    <!-- الإشارة للملف الرئيسي مع نوع النص المناسب للمحول -->
+    <div id="root"><div class="loader"></div><p style="color: #10b981; font-weight: bold;">جاري تشغيل رشاقة...</p></div>
     <script type="text/babel" data-type="module" src="./index.tsx"></script>
   </body>
 </html>
