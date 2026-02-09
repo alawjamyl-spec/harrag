@@ -7,12 +7,36 @@
     <title>رشاقة | حاسبة السعرات</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
       body {
         font-family: 'Tajawal', sans-serif;
         background-color: #f8fafc;
       }
+      /* إخفاء محتوى الصفحة حتى يتم تحميل React بالكامل */
+      #root:empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: white;
+      }
+      #root:empty::after {
+        content: "جاري تحميل رشاقة...";
+        font-weight: bold;
+        color: #10b981;
+      }
     </style>
+
+    <!-- تعريف بيئة العمل لمنع خطأ process is not defined -->
+    <script>
+      window.process = {
+        env: {
+          API_KEY: "" // سيتم حقنها من المنصة أو استبدالها لاحقاً
+        }
+      };
+    </script>
+
     <script type="importmap">
     {
       "imports": {
@@ -27,9 +51,16 @@
       }
     }
     </script>
-    <script type="module" src="./index.tsx"></script>
+
+    <!-- استخدام ESM.sh Run لتحويل TSX تلقائياً في المتصفح -->
+    <script type="module">
+      import { run } from 'https://esm.sh/run';
+      run();
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- الإشارة للملف الرئيسي مع نوع النص المناسب للمحول -->
+    <script type="text/babel" data-type="module" src="./index.tsx"></script>
   </body>
 </html>

@@ -32,13 +32,21 @@ const NutritionAI: React.FC<NutritionAIProps> = ({ userData, results }) => {
     if (messages.length === 0) {
       setMessages([{
         role: 'model',
-        text: `أهلاً بك! أنا خبير التغذية الذكي. بناءً على بياناتك (احتياجك: ${Math.round(results.targetCalories)} سعرة)، يمكنني مساعدتك في تصميم وجباتك أو الإجابة على أي تساؤل صحي. كيف أبدأ معك اليوم؟`
+        text: `أهلاً بك! أنا خبير التغذية الذكي. بناءً على بياناتك (احتياجك: ${Math.round(results.targetCalories)} سعرة)، كيف أساعدك اليوم؟`
       }]);
     }
-  }, []);
+  }, [results.targetCalories]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    // الحصول على المفتاح بأمان
+    const apiKey = (window as any).process?.env?.API_KEY || "";
+    if (!apiKey) {
+      setMessages(prev => [...prev, { role: 'user', text: input }, { role: 'model', text: "⚠️ عذراً، يجب إعداد مفتاح API الخاص بـ Gemini في إعدادات Netlify ليعمل الذكاء الاصطناعي." }]);
+      setInput('');
+      return;
+    }
 
     const userMsg = input;
     setInput('');
@@ -46,74 +54,55 @@ const NutritionAI: React.FC<NutritionAIProps> = ({ userData, results }) => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const systemInstruction = `أنت خبير تغذية ومدرب رياضي محترف...`;
+      const ai = new GoogleGenAI({ apiKey });
+      const systemInstruction = `أنت خبير تغذية. احتياج المستخدم: ${Math.round(results.targetCalories)} سعرة. الماكروز: بروتين ${results.macros.protein}ج، كربوهيدرات ${results.macros.carbs}ج، دهون ${results.macros.fats}ج. الهدف: ${userData.goal}.`;
 
-      const conversationHistory = messages
-        .filter((m, index) => !(index === 0 && m.role === 'model'))
-        .map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }]
-        }));
+      const history = messages
+        .filter((m, i) => !(i === 0 && m.role === 'model'))
+        .map(m => ({ role: m.role, parts: [{ text: m.text }] }));
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [
-          ...conversationHistory, 
-          { role: 'user', parts: [{ text: userMsg }] }
-        ],
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
+        contents: [...history, { role: 'user', parts: [{ text: userMsg }] }],
+        config: { systemInstruction, temperature: 0.7 }
       });
 
-      const aiText = response.text || "عذراً، حدث خطأ في معالجة الطلب.";
-      setMessages(prev => [...prev, { role: 'model', text: aiText }]);
+      setMessages(prev => [...prev, { role: 'model', text: response.text || "لا توجد إجابة." }]);
     } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: "عذراً، واجهت مشكلة في الاتصال." }]);
+      setMessages(prev => [...prev, { role: 'model', text: "حدث خطأ في الاتصال بالذكاء الاصطناعي." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[70vh] md:h-[600px] bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-emerald-500 p-2 rounded-xl">
-            <Bot size={24} />
-          </div>
-          <div>
-            <h4 className="font-bold">مستشارك الصحي</h4>
-          </div>
-        </div>
+    <div className="flex flex-col h-[500px] bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
+      <div className="bg-slate-900 p-4 text-white flex items-center gap-3">
+        <Bot size={20} className="text-emerald-500" />
+        <h4 className="font-bold text-sm">مستشارك الصحي الذكي</h4>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`p-4 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700 border'}`}>
-                {msg.text}
-              </div>
+            <div className={`p-3 rounded-2xl text-sm max-w-[85%] ${msg.role === 'user' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700 border shadow-sm'}`}>
+              {msg.text}
             </div>
           </div>
         ))}
-        {isLoading && <Loader2 className="animate-spin text-emerald-500 mx-auto" />}
+        {isLoading && <Loader2 className="animate-spin text-emerald-500 mx-auto" size={20} />}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 bg-white border-t">
+      <div className="p-3 bg-white border-t">
         <div className="relative flex items-center">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="اسأل خبير التغذية..."
-            className="w-full p-4 pr-12 rounded-2xl bg-slate-50 outline-none"
+            placeholder="اسأل عن وجبات صحية..."
+            className="w-full p-3 pr-10 rounded-xl bg-slate-50 outline-none text-sm border focus:border-emerald-500"
           />
-          <button onClick={handleSend} className="absolute left-2 p-3 bg-emerald-500 text-white rounded-xl">
+          <button onClick={handleSend} className="absolute left-2 text-emerald-500 p-2">
             <Send size={18} />
           </button>
         </div>
